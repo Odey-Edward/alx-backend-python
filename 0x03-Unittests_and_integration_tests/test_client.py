@@ -41,23 +41,29 @@ class TestGithubOrgClient(unittest.TestCase):
 
             self.assertEqual(result, {"payload": True})
 
-    @patch('utils.get_json', return_value={"payload": False})
+    @patch('client.get_json')
     def test_public_repos(self, mock_json):
+        """Implement TestGithubOrgClient.test_public_repos to
+        unit-test GithubOrgClient.public_repos"""
         with patch.object(GithubOrgClient, '_public_repos_url',
                           new_callable=PropertyMock) as mock_public_repos_url:
 
-            mock_public_repos_url.return_value = {"payload": False}
+            mock_public_repos_url.return_value = "https://api.example.com/data"
+
+            payload_list = [
+                    {'name': 'Edward'},
+                    {"name": "repo1"},
+                    {"name": "repo2"}]
+
+            mock_json.return_value = payload_list
 
             obj = GithubOrgClient('abc')
 
-            result = obj._public_repos_url
+            result = obj.public_repos()
 
-            self.assertEqual(result, {"payload": False})
+            for v in payload_list:
+                self.assertIn(v['name'], result)
 
             mock_public_repos_url.assert_called_once()
 
-        result = mock_json()
-
-        self.assertEqual(result, {"payload": False})
-
-        mock_json.assert_called_once()
+            mock_json.assert_called_once()
